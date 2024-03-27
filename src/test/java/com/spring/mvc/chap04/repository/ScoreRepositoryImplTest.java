@@ -16,6 +16,7 @@ class ScoreRepositoryImplTest {
 
     @Autowired
     ScoreRepositoryImpl repository;
+    private String sort;
 
     @Test
     @DisplayName("새로운 성적 정보를 save를 통해 추가한다.")
