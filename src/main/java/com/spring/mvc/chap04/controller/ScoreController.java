@@ -7,7 +7,7 @@ package com.spring.mvc.chap04.controller;
     # 요청 URL Endpoint
     1. 학생의 성적정보 등록폼 화면을 보여주고
        동시에 지금까지 저장되어 있는 성적 정보 목록을 조회
-    - /score/list   :   GET
+    - /score/list.css   :   GET
 
     2. 학생의 입력된 성적정보를 데이터베이스에 저장하는 요청
     - /score/register   :  POST
@@ -52,14 +52,14 @@ public class ScoreController {
     */
 
     //1. 성적 입력폼 띄우기
-    @GetMapping("/list")
+    @GetMapping("/list.css")
     public String list(Model model,
                        @RequestParam(defaultValue = "num") String sort) {
-        System.out.println("/score/list: GET!!!");
+        System.out.println("/score/list.css: GET!!!");
         List<ScoreResponseDTO> dtoList = service.findAll(sort);
 
         model.addAttribute("sList", dtoList);
-        return "chap04/score-list";
+        return "chap04/score-list.css";
     }
 
     //2. 성적정보를 데이터베이스에 저장하는 요청
@@ -76,15 +76,15 @@ public class ScoreController {
             # forward vs redirect
             - 포워드는 요청 리소스를 그대로 전달해줌.
             - 따라서 URL이 변경되지 않고 한번의요청과 한번의 응답만 이뤄짐
-            - forward할 때는 포워딩할 파일의 경로를 적습니다. (/views/chap04/score-list.jsp)
+            - forward할 때는 포워딩할 파일의 경로를 적습니다. (/views/chap04/score-list.css.jsp)
 
             - 리다이렉트는 요청후에 자동응답이 나가고
               2번째 자동요청이 들어오면서 2번째 응답을 내보냄
             - 따라서 2번째 요청의 URL로 자동 변경됨
-            - redirect 할 때는 다시 들어왔으면 하는 요청 url을 적는 것 (/score/list -> 목록 요청)
+            - redirect 할 때는 다시 들어왔으면 하는 요청 url을 적는 것 (/score/list.css -> 목록 요청)
          */
 
-        return "redirect:/score/list";
+        return "redirect:/score/list.css";
     }
 
     // 성적 삭제 요청
@@ -95,7 +95,7 @@ public class ScoreController {
 
         service.deleteScore(stuNum);
 
-        return "redirect:/score/list";
+        return "redirect:/score/list.css";
     }
 
     // 성적 상세 조회 요청
