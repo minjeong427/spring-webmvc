@@ -1,6 +1,7 @@
 package com.spring.mvc.chap05.service;
 
 import com.spring.mvc.chap05.dto.request.BoardWriteRequestDTO;
+import com.spring.mvc.chap05.dto.response.BoardDetailResponseDTO;
 import com.spring.mvc.chap05.dto.response.BoardListResponseDTO;
 import com.spring.mvc.chap05.entity.Board;
 import com.spring.mvc.chap05.repository.BoardRepository;
@@ -20,7 +21,6 @@ public class BoardService {
     public void register(BoardWriteRequestDTO dto) {
         Board board = new Board(dto); // dto를 entity로 변환
         repository.save(board);
-
     }
 
     // repository로부터 전달받은 entity List를 DTO List로 변환해서 컨트롤러에게 리턴.
@@ -34,11 +34,20 @@ public class BoardService {
         return dtoList;
     }
 
+    public BoardDetailResponseDTO getDetail(int bno) {
+        // 상세보기니까 조회수를 하나 올려주는 처리를 해야 한다.
+        repository.updateViewCount(bno);
+
+        Board board = repository.findOne(bno);
+        return new BoardDetailResponseDTO(board);
 
 
+    }
+
+    public void delete(int bno) {
+        repository.delete(bno);
+    }
 }
-
-
 
 
 
