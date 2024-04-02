@@ -1,6 +1,10 @@
 package com.spring.mvc.chap05.api;
 
+import com.spring.mvc.chap05.common.Page;
+import com.spring.mvc.chap05.dto.request.ReplyModifyRequestDTO;
 import com.spring.mvc.chap05.dto.request.ReplyPostRequestDTO;
+import com.spring.mvc.chap05.dto.response.ReplyDetailResponseDTO;
+import com.spring.mvc.chap05.dto.response.ReplyListResponseDTO;
 import com.spring.mvc.chap05.service.ReplyService;
 import lombok.RequiredArgsConstructor;
 import org.apache.coyote.Response;
@@ -9,6 +13,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 /**
      * REST API URL 설계 원칙
@@ -23,7 +29,7 @@ import org.springframework.web.bind.annotation.*;
      * => /replies/delete?replyNo=3   (X)
      * => /replies/3    :   DELETE    (O)
  */
-@Controller
+@RestController // @Controller + 메서드마다 @ResponseBody를 붙인 것과 동일한 효과.
 @RequestMapping("/api/v1/replies")
 @RequiredArgsConstructor
 public class ReplyApiController {
@@ -31,18 +37,27 @@ public class ReplyApiController {
     private final ReplyService replyService;
 
     // 댓글 목록 조회 요청
-    // URL: /api/v1/replies/글번호
-    @GetMapping("/{boardNo}")
-    public ResponseEntity<?> list(@PathVariable int boardNo) {
+    // URL: /api/v1/replies/글번호/page/페이지번호
+    @GetMapping("/{boardNo}/page/{pageNo}")
+//    @ResponseBody
+    public ResponseEntity<?> list(@PathVariable int boardNo,
+                                  @PathVariable int pageNo) {
         System.out.println("/api/v1/replies/" + boardNo + ": GET!!");
+        System.out.println("pageNo = " + pageNo);
 
-        replyService.getList(boardNo);
+        Page page = new Page();
+        page.setPageNo(pageNo);
+        page.setAmount(5);
+
+        ReplyListResponseDTO replies = replyService.getList(boardNo, page);
+
+        return ResponseEntity.ok().body(replies);
     }
 
     // RequestParam: 동기 요청에서 ? 뒤에 붙은 파라미터
     // RequestBody: 비동기 요청에서 요청 객체 바디 안에 있는 JSON을 파싱
     @PostMapping
-    @ResponseBody
+//    @ResponseBody
     public ResponseEntity<?> create(@Validated @RequestBody ReplyPostRequestDTO dto,
                          BindingResult result) { // 검증 결과 메시지를 가진 객체.
 
@@ -60,8 +75,25 @@ public class ReplyApiController {
 
         replyService.register(dto);
 
-        return ResponseEntity.ok("success");
+        return ResponseEntity.ok().body("success");
 
+    }
+
+    @PutMapping
+    public ResponseEntity<?> update(@Validated @RequestBody ReplyModifyRequestDTO dto,
+                                    BindingResult result) {
+
+        if (result.hasErrors()) {
+            return ResponseEntity
+                    .badRequest()
+                    .body(result.toString());
+        }
+
+        System.out.println("/api/v1/replies: PUT!!");
+        System.out.println("dto = " + dto);
+
+        replyService.modify(dto);
+        return ResponseEntity.ok().body("modSuccess");
     }
 
 }
