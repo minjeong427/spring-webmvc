@@ -8,6 +8,7 @@ import com.spring.mvc.chap05.dto.response.ReplyListResponseDTO;
 import com.spring.mvc.chap05.service.ReplyService;
 import lombok.RequiredArgsConstructor;
 import org.apache.coyote.Response;
+import org.apache.ibatis.annotations.Delete;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
@@ -96,6 +97,27 @@ public class ReplyApiController {
         return ResponseEntity.ok().body("modSuccess");
     }
 
+    @DeleteMapping("/{replyNo}")
+    public ResponseEntity<?> remove(@PathVariable Integer replyNo) {
+        if (replyNo == null) {
+            return ResponseEntity
+                    .badRequest()
+                    .body("댓글 번호가 전달되지 않음!");
+        }
+
+        System.out.println("/api/v1/replies/ " + replyNo + " : DELETE!!");
+
+        try {
+            replyService.delete(replyNo);
+            return ResponseEntity
+                    .ok()
+                    .body("delSuccess");
+        } catch (Exception e) {
+            return ResponseEntity
+                    .internalServerError()
+                    .body(e.getMessage());
+        }
+    }
 }
 
 
