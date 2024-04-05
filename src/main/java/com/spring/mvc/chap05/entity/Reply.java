@@ -19,9 +19,18 @@ CREATE TABLE tbl_reply
     CONSTRAINT fk_reply FOREIGN KEY(board_no) REFERENCES tbl_board(board_no)
     ON DELETE CASCADE
 );
+
+    ALTER TABLE tbl_reply
+    ADD account VARCHAR(50);
+
+    ALTER TABLE tbl_reply
+    ADD CONSTRAINT fk_reply_account
+    FOREIGN KEY (account)
+    REFERENCES tbl_member (account)
+    ON DELETE CASCADE;
  */
 
-@Setter @Getter @ToString
+@Getter @ToString
 @EqualsAndHashCode
 @NoArgsConstructor
 @AllArgsConstructor
@@ -29,10 +38,14 @@ CREATE TABLE tbl_reply
 public class Reply {
 
     private int replyNo;
+    @Setter
     private String replyText;
+    @Setter
     private String replyWriter;
     private LocalDateTime replyDate;
     private int boardNo;
     private LocalDateTime updateDate;
+    @Setter
+    private String account;
 
 }

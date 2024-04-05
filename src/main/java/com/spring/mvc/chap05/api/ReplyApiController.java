@@ -6,7 +6,9 @@ import com.spring.mvc.chap05.dto.request.ReplyPostRequestDTO;
 import com.spring.mvc.chap05.dto.response.ReplyDetailResponseDTO;
 import com.spring.mvc.chap05.dto.response.ReplyListResponseDTO;
 import com.spring.mvc.chap05.service.ReplyService;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.coyote.Response;
 import org.apache.ibatis.annotations.Delete;
 import org.springframework.http.ResponseEntity;
@@ -18,21 +20,22 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 /**
-     * REST API URL 설계 원칙
-     * - CRUD는 URL에 명시하는게 아니라 HTTP method로만 표현해야 함!!
-     * => /replies/write      (X)
-     * => /replies   :  POST  (O)
-
-     * => /replies/all        (X)   - 전체조회
-     * => /replies   :  GET   (O)   - 전체조회
-     * => /replies/17  : GET        - 단일조회
-
-     * => /replies/delete?replyNo=3   (X)
-     * => /replies/3    :   DELETE    (O)
+ * REST API URL 설계 원칙
+ * - CRUD는 URL에 명시하는게 아니라 HTTP method로만 표현해야 함!!
+ * => /replies/write      (X)
+ * => /replies   :  POST  (O)
+ * <p>
+ * => /replies/all        (X)   - 전체조회
+ * => /replies   :  GET   (O)   - 전체조회
+ * => /replies/17  : GET        - 단일조회
+ * <p>
+ * => /replies/delete?replyNo=3   (X)
+ * => /replies/3    :   DELETE    (O)
  */
 @RestController // @Controller + 메서드마다 @ResponseBody를 붙인 것과 동일한 효과.
 @RequestMapping("/api/v1/replies")
 @RequiredArgsConstructor
+@Slf4j
 public class ReplyApiController {
 
     private final ReplyService replyService;
@@ -60,7 +63,8 @@ public class ReplyApiController {
     @PostMapping
 //    @ResponseBody
     public ResponseEntity<?> create(@Validated @RequestBody ReplyPostRequestDTO dto,
-                         BindingResult result) { // 검증 결과 메시지를 가진 객체.
+                                    BindingResult result,// 검증 결과 메시지를 가진 객체.
+                                    HttpSession session) {
 
         // 입력값 검증에 걸리면 400번 status와 함께 메시지를 클라이언트로 전송
         if (result.hasErrors()) {
@@ -71,10 +75,9 @@ public class ReplyApiController {
                     .body(result.toString());
         }
 
-        System.out.println("/api/v1/replies: POST!!");
-        System.out.println("dto = " + dto);
+        log.info("/api/v1/replies: POST!!, dto: {}", dto);
 
-        replyService.register(dto);
+        replyService.register(dto, session);
 
         return ResponseEntity.ok().body("success");
 
