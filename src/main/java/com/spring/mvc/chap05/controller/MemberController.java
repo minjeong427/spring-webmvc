@@ -1,23 +1,29 @@
 package com.spring.mvc.chap05.controller;
 
+import com.mysql.cj.log.Log;
 import com.spring.mvc.chap05.dto.request.LoginRequestDTO;
 import com.spring.mvc.chap05.dto.request.SignUpRequestDTO;
 import com.spring.mvc.chap05.service.LoginResult;
 import com.spring.mvc.chap05.service.MemberService;
+import com.spring.mvc.util.LoginUtils;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import static com.spring.mvc.util.LoginUtils.isAutoLogin;
+
 @Controller
 @RequestMapping("/members")
 @RequiredArgsConstructor
+@Slf4j
 public class MemberController {
 
     private final MemberService memberService;
@@ -26,7 +32,7 @@ public class MemberController {
     // 응답하고자 하는 화면의 경로가 url과 동일하다면 void로 처리할 수 있습니다. (선택사항)
     @GetMapping("/sign-up")
     public void signUp() {
-        System.out.println("/members/sign-up: GET!!");
+        log.info("/members/sign-up: GET");
     }
 
     // 아이디, 이메일 중복체크 비동기 요청 처리
@@ -34,9 +40,8 @@ public class MemberController {
     @ResponseBody
     public ResponseEntity<?> check(@PathVariable String type,
                                    @PathVariable String keyword) {
-        System.out.println("/members/check: async GET!!");
-        System.out.println("type = " + type);
-        System.out.println("keyword = " + keyword);
+        log.info("/members/check: async GET");
+        log.debug("type: {}, keyword: {}", type, keyword);
 
         boolean flag = memberService.checkDuplicateValue(type, keyword);
 
@@ -45,8 +50,7 @@ public class MemberController {
 
     @PostMapping("/sign-up")
     public String signUp(SignUpRequestDTO dto) {
-        System.out.println("/members/sign-up: POST!!");
-        System.out.println("dto = " + dto);
+        log.info("/members/sign-up: POST, dto: {}", dto);
 
         memberService.join(dto);
         return "redirect:/board/list";
@@ -55,7 +59,7 @@ public class MemberController {
     // 로그인 양식 화면 요청 처리
     @GetMapping("/sign-in")
     public void signIn() {
-        System.out.println("/members/sign-in: GET!!");
+        log.info("/members/sign-in: GET!");
     }
 
     // 로그인 검증 요청
@@ -63,28 +67,26 @@ public class MemberController {
     public String signIn(LoginRequestDTO dto,
                          // Model에 담긴 데이터는 리다이렉트 시 jsp로 전달되지 못한다.
                          // 리다이렉트는 응답이 나갔다가 재요청이 들어오는데, 그 과정에서
-                         // 첫 번째 응답이 나가는 순간 모델은 소멸함. (Model의 생명주기는 한 번의 요청과 응답 사이에서만 유효))
-                        RedirectAttributes ra,
+                         // 첫번째 응답이 나가는 순간 모델은 소멸함. (Model의 생명주기는 한 번의 요청과 응답 사이에서만 유효)
+                         RedirectAttributes ra,
                          HttpServletResponse response,
                          HttpServletRequest request
-                        ) {
-        System.out.println("/members/sign-in: POST!!");
-        System.out.println("dto = " + dto);
+    ) {
+        log.info("/members/sign-in: POST!, dto: {}", dto);
 
-        LoginResult result = memberService.authenticate(dto);
-        System.out.println("result = " + result);
+        // 자동 로그인 서비스를 추가하기 위해 세션과 응답 객체도 함께 전달.
+        LoginResult result = memberService.authenticate(dto, request.getSession(), response);
+        log.info("result: {}", result);
 
         ra.addFlashAttribute("result", result);
-
 
         if (result == LoginResult.SUCCESS) { // 로그인 성공 시
 
             // 로그인을 했다는 정보를 계속 유지하기 위한 수단으로 쿠키를 사용하자.
-//            makeLoginCookie(dto, response);
+            // makeLoginCookie(dto, response);
 
             // 세션으로 로그인 유지
             memberService.maintainLoginState(request.getSession(), dto.getAccount());
-
 
             return "redirect:/board/list";
         }
@@ -104,12 +106,20 @@ public class MemberController {
 
         // 쿠키가 완성됐다면 응답 객체에 쿠키를 태워서 클라이언트로 전송
         response.addCookie(cookie);
-
     }
 
     // 로그아웃 요청 처리
     @GetMapping("/sign-out")
-    public String signOut(HttpSession session) {
+    public String signOut(HttpSession session,
+                          HttpServletRequest request,
+                          HttpServletResponse response) {
+        log.info("/member/sign-out: GET!");
+
+        // 자동 로그인 중인지 확인
+        if (isAutoLogin(request)) {
+            // 쿠키를 삭제해주고 DB 데이터도 원래대로 돌려놓아야 한다.
+            memberService.autoLoginClear(request, response);
+        }
 
         // 세션에서 로그인 정보 기록 삭제
         session.removeAttribute("login");
@@ -121,12 +131,7 @@ public class MemberController {
 
     }
 
-
-
 }
-
-
-
 
 
 

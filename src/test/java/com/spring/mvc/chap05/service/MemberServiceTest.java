@@ -17,7 +17,7 @@ class MemberServiceTest {
     MemberService memberService;
 
     @Test
-    @DisplayName("회원 정보를 전달하면 비밀번호가 암호화되어 DB에 저장될 것이다.")
+    @DisplayName("회원정보를 전달하면 비밀번호가 암호화되어 DB에 저장될 것이다.")
     void joinTest() {
         // given
         SignUpRequestDTO dto = SignUpRequestDTO.builder()
@@ -43,23 +43,10 @@ class MemberServiceTest {
                 .build();
 
         // when
-        LoginResult result = memberService.authenticate(dto);
+        LoginResult result = memberService.authenticate(dto, request.getSession(), response);
 
         // then
         assertEquals(SUCCESS, result);
     }
+
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-

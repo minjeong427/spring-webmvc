@@ -7,7 +7,9 @@ import com.spring.mvc.chap05.dto.request.BoardWriteRequestDTO;
 import com.spring.mvc.chap05.dto.response.BoardDetailResponseDTO;
 import com.spring.mvc.chap05.dto.response.BoardListResponseDTO;
 import com.spring.mvc.chap05.service.BoardService;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -17,6 +19,7 @@ import java.util.List;
 @Controller
 @RequiredArgsConstructor
 @RequestMapping("/board")
+@Slf4j
 public class BoardController {
 
     private final BoardService service;
@@ -36,8 +39,8 @@ public class BoardController {
         model.addAttribute("bList", dtoList);
         model.addAttribute("maker", pageMaker);
 
-        // 메서드의 파라미터값을 model 객체에 바로 추가하고 싶다면 @ModelAttribute를 사용.
-        // model.addAttribute("s", page);
+        // 메서드의 파라미터값을 model객체에 바로 추가하고 싶다면 @ModelAttribute를 사용.
+//        model.addAttribute("s", page);
 
         return "chap05/list";
     }
@@ -54,11 +57,10 @@ public class BoardController {
     // BoardWriteRequestDTO를 활용하여 파라미터 처리 -> dto.request 패키지에 생성
     // 등록 완료 후에는 목록 조회 요청이 다시 들어오게끔 처리.
     @PostMapping("/write")
-    public String write(BoardWriteRequestDTO dto) {
-        System.out.println("/board/write: POST!");
-        System.out.println("dto = " + dto);
+    public String write(BoardWriteRequestDTO dto, HttpSession session) {
+        log.info("/board/write: POST, dto: {}", dto);
 
-        service.register(dto);
+        service.register(dto, session);
         return "redirect:/board/list";
     }
 
@@ -67,11 +69,10 @@ public class BoardController {
     // 글번호 전달되면 삭제 진행
     @GetMapping("/delete")
     public String delete(int bno) {
-        System.out.println("/board/delete: GET!!! " + bno);
+        System.out.println("/board/delete: GET!! " + bno);
         service.delete(bno);
 
         return "redirect:/board/list";
-
     }
 
 
@@ -79,7 +80,7 @@ public class BoardController {
     // 글 번호 전달되면 해당 내용 상세보기 처리
     // chap05/detail.jsp
     @GetMapping("/detail/{bno}")
-    public String detail(@PathVariable("bno") int bno,  @ModelAttribute("s") Search search, Model model) {
+    public String detail(@PathVariable("bno") int bno, @ModelAttribute("s") Search search, Model model) {
         System.out.println("/board/detail: GET! " + bno);
         BoardDetailResponseDTO dto = service.getDetail(bno);
 
@@ -90,8 +91,6 @@ public class BoardController {
 
 
 }
-
-
 
 
 
