@@ -29,6 +29,7 @@ public class Member {
     private String password;
     private String name;
     private String email;
+    private String profileImage;
     private Auth auth;
     private LocalDateTime regDate;
 
