@@ -20,8 +20,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-
-import static com.spring.mvc.util.LoginUtils.isAutoLogin;
+import static com.spring.mvc.util.LoginUtils.*;
 
 @Controller
 @RequestMapping("/members")
@@ -58,7 +57,7 @@ public class MemberController {
     @PostMapping("/sign-up")
     public String signUp(SignUpRequestDTO dto) {
         log.info("/members/sign-up: POST, dto: {}", dto);
-        log.info("attached file mane: {}", dto.getProfileImage().getOriginalFilename());
+        log.info("attached file name: {}", dto.getProfileImage().getOriginalFilename());
 
         // 서버에 파일 업로드 지시
         String savePath = FileUtils.uploadFile(dto.getProfileImage(), rootPath);
@@ -86,7 +85,7 @@ public class MemberController {
     ) {
         log.info("/members/sign-in: POST!, dto: {}", dto);
 
-        // 자동 로그인 서비스를 추가하기 위해 세션과 응답 객체도 함께 전달.
+        // 자동 로그인 서비스를 추가하기 위해 세션과 응답객체도 함께 전달.
         LoginResult result = memberService.authenticate(dto, request.getSession(), response);
         log.info("result: {}", result);
 
@@ -144,9 +143,6 @@ public class MemberController {
     }
 
 }
-
-
-
 
 
 
